@@ -29,5 +29,5 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/statikserve:latest
+          tags: ghcr.io/xoconoch/statikserve:latest
 
