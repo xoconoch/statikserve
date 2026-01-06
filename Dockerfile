@@ -11,8 +11,6 @@ WORKDIR /app
 
 COPY --from=builder --chown=65532:65532 /app/server .
 
-COPY --from=builder --chown=65532:65532 /app/site /app/site
-
 EXPOSE 80
 
 CMD ["./server"]
