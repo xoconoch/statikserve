@@ -1,0 +1,9 @@
+services:
+  statikserve:
+    image: go-static-server-distroless
+    ports:
+      - "80:80"
+    environment:
+      AUTH_TOKEN: your_secret_token
+    volumes:
+      - ./site:/app/site
