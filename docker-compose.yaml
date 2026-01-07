@@ -1,9 +1,7 @@
 services:
   statikserve:
-    image: ghcr.io/xoconoch/statikserve
+    image: statikserve
     ports:
       - "80:80"
     environment:
       AUTH_TOKEN: your_secret_token
-    volumes:
-      - ./site:/app/site
