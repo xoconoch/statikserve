@@ -1,6 +1,6 @@
 services:
   statikserve:
-    image: statikserve
+    image: ghcr.io/xoconoch/statikserve
     ports:
       - "80:80"
     environment:
