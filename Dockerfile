@@ -1,25 +1,24 @@
-FROM golang:1.21-alpine AS builder
+# ---------- Build Go binary ----------
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
-COPY main.go .
-RUN CGO_ENABLED=0 GOOS=linux go build -o server main.go
+COPY go.mod ./
+COPY main.go ./
 
-FROM alpine:latest
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o uploader
 
-RUN apk --no-cache add ca-certificates
+# ---------- Runtime ----------
+FROM nginx:1.25-alpine
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN apk add --no-cache ca-certificates
 
-WORKDIR /home/appuser
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/site.conf
 
-COPY --from=builder /app/server .
+COPY --from=builder /app/uploader /usr/local/bin/uploader
 
-RUN mkdir -p /home/appuser/site && \
-    chown -R appuser:appgroup /home/appuser && \
-    chmod -R 755 /home/appuser
-
-USER appuser
+RUN mkdir -p /var/www/site
 
 EXPOSE 80
 
-CMD ["./server"]
+CMD ["/bin/sh", "-c", "uploader & nginx -g 'daemon off;'"]
