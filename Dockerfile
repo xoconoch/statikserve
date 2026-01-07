@@ -1,11 +1,17 @@
 # ---------- Build Go binary ----------
-FROM golang:1.25-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS builder
+
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /app
 COPY go.mod ./
 COPY main.go ./
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o uploader
+RUN CGO_ENABLED=0 \
+    GOOS=$TARGETOS \
+    GOARCH=$TARGETARCH \
+    go build -o uploader
 
 # ---------- Runtime ----------
 FROM nginx:1.25-alpine
