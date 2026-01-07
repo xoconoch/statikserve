@@ -114,18 +114,21 @@ func unzip(src, dest string) error {
 	}
 	defer r.Close()
 
+	var prefix string
+	// Determine the top-level directory
+	if len(r.File) > 0 {
+		parts := strings.SplitN(r.File[0].Name, "/", 2)
+		if len(parts) > 1 {
+			prefix = parts[0] + "/" // "site/" in your case
+		}
+	}
+
 	for _, f := range r.File {
-		// Remove top-level directory if present
 		fname := f.Name
-		if parts := strings.SplitN(f.Name, "/", 2); len(parts) == 2 {
-			fname = parts[1]
+		if prefix != "" && strings.HasPrefix(fname, prefix) {
+			fname = strings.TrimPrefix(fname, prefix)
 		}
-
 		fpath := filepath.Join(dest, fname)
-		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
-			continue
-		}
-
 		if f.FileInfo().IsDir() {
 			os.MkdirAll(fpath, os.ModePerm)
 			continue
@@ -140,6 +143,7 @@ func unzip(src, dest string) error {
 
 		rc, err := f.Open()
 		if err != nil {
+			outFile.Close()
 			return err
 		}
 
@@ -151,5 +155,6 @@ func unzip(src, dest string) error {
 			return err
 		}
 	}
+
 	return nil
 }
