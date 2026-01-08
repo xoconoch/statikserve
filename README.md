@@ -1,6 +1,6 @@
 # Statikserve
 
-Serve a static site publicly and upload new builds via a secret token. Supports gzip compression.
+Serve a static site publicly and upload new builds via a secret token.
 Set the `AUTH_TOKEN` env variable in the compose file and push your static site as follows:
 
 ```bash
