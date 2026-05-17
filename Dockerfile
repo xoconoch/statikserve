@@ -23,7 +23,8 @@ RUN apk add --no-cache \
 
 # nginx config
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/site.conf
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY site.conf /etc/nginx/conf.d/site.conf
 
 # app binary
 COPY --from=builder /app/uploader /usr/local/bin/uploader
