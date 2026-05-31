@@ -58,7 +58,7 @@ func main() {
 			return
 		}
 
-		if err := extractDist(tmpZip.Name(), webRoot); err != nil {
+		if err := extractZip(tmpZip.Name(), webRoot); err != nil {
 			http.Error(w, err.Error(), 400)
 			return
 		}
@@ -76,7 +76,7 @@ func authorized(r *http.Request, token string) bool {
 	return auth == "Bearer "+token
 }
 
-func extractDist(zipPath, dest string) error {
+func extractZip(zipPath, dest string) error {
 	r, err := zip.OpenReader(zipPath)
 	if err != nil {
 		return err
@@ -88,30 +88,24 @@ func extractDist(zipPath, dest string) error {
 		return err
 	}
 
-	found := false
-
 	for _, f := range r.File {
-		if !strings.HasPrefix(f.Name, "dist/") {
-			continue
-		}
-		found = true
+		target := filepath.Join(dest, f.Name)
 
-		rel := strings.TrimPrefix(f.Name, "dist/")
-		if rel == "" {
-			continue
-		}
+		cleanDest := filepath.Clean(dest) + string(os.PathSeparator)
+		cleanTarget := filepath.Clean(target)
 
-		target := filepath.Join(dest, rel)
-		if !strings.HasPrefix(target, dest) {
+		if !strings.HasPrefix(cleanTarget, cleanDest) {
 			return errors.New("invalid zip path")
 		}
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(target, 0755)
+			if err := os.MkdirAll(cleanTarget, 0755); err != nil {
+				return err
+			}
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(cleanTarget), 0755); err != nil {
 			return err
 		}
 
@@ -119,22 +113,21 @@ func extractDist(zipPath, dest string) error {
 		if err != nil {
 			return err
 		}
-		defer rc.Close()
 
-		out, err := os.Create(target)
+		out, err := os.Create(cleanTarget)
 		if err != nil {
+			rc.Close()
 			return err
 		}
 
-		if _, err := io.Copy(out, rc); err != nil {
-			out.Close()
-			return err
-		}
+		_, copyErr := io.Copy(out, rc)
+
+		rc.Close()
 		out.Close()
-	}
 
-	if !found {
-		return errors.New("zip must contain dist/ directory")
+		if copyErr != nil {
+			return copyErr
+		}
 	}
 
 	return nil
